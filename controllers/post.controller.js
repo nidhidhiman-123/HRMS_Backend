@@ -1,6 +1,8 @@
-import postModel from "../models/post.model";
-import leavesModel from "../models/leaves.model";
-import multer from "multer";
+const postModel = require("../models/post.model");
+const leavesModel = require("../models/leaves.model");
+const eventModel = require("../models/event.model");
+const multer = require("multer");
+
 
 
 const storage = multer.diskStorage({
@@ -14,88 +16,225 @@ const storage = multer.diskStorage({
 
 const handleMultipartData = multer({ storage, limit: { filesize: 1000000 * 5 } }).single('image');
 
-const postController = {
+// const postController = {
 
-    async add_post(req, res) {
-        const current_date = new Date();
+exports.add_post = async (req, res) => {
+    const current_date = new Date();
 
-        console.log(current_date);
+    console.log(current_date);
 
-        handleMultipartData(req, res, async (err) => {
+    handleMultipartData(req, res, async (err) => {
 
-            const filePath = req.file ? req.file.path : '';
-            const { description, title } = req.body;
-            let post_data;
-            try {
-                post_data = await postModel.create({
+        const filePath = req.file ? req.file.path : '';
+        const { description, title } = req.body;
+        let post_data;
+        try {
+            post_data = await postModel.create
+                ({
                     title,
                     description,
                     post_date: current_date,
                     image: filePath
                 });
-                console.log(post_data);
-            }
-            catch (err) {
-                return next(err);
-            }
-            res.status(201).json({
-                success: true,
-                data: post_data
-            });
-        });
-    },
 
-    async allpost(req, res) {
-        const all = await postModel.find();
-        res.status(201).json(all);
-    },
-
-    async deletepost(req, res) {
-        let all;
-        try {
-            all = await postModel.findOneAndDelete({ _id: req.params.id });
-        }
-        catch (error) {
-            console.log(error);
-        }
-
-
-        res.status(201).json(all);
-    },
-
-
-
-
-    async add_leaves(req, res) {
-
-        const { name, leave_type } = req.body;
-        let data;
-        try {
-            data = await leavesModel.create(
-                {
-                    name,
-                    leave_type
-
-                });
-            console.log(data);
         }
         catch (err) {
             return next(err);
         }
         res.status(201).json({
             success: true,
-            data: data
+            data: post_data
         });
+    });
+}
 
-    },
+exports.allpost = async (req, res) => {
+    //     const all = await postModel.find();
+    //     res.status(201).json(all);
+    // },
 
-    async allleave(req, res) {
-        const leave = await leavesModel.find();
-        res.status(201).json(leave);
-    },
+    let all = await postModel.find().populate('comment.userId', { name: 1, image: 1 }).sort({ $natural: -1 })
+    const arr = [];
+    for (let x of all) {
+        let likeornot = x.like.indexOf(req.user.id)
+        let like
+        if (likeornot < 0) {
+            console.log("false")
+            like = false
+        } else {
+            console.log("true")
+            like = true
+        }
+        arr.push({ x, isLike: like })
 
-
-
+    }
+    return res.send(arr);
 
 }
-export default postController;
+
+exports.editpost = async (req, res) => {
+    const { title, description, post_date, image } = req.body;
+    let editpost;
+    try {
+        editpost = await postModel.findByIdAndUpdate({ _id: req.params.id },
+
+            { title: title, description: description, post_date: post_date });
+    }
+    catch (error) {
+        console.log(error);
+    }
+
+
+    res.status(201).json(editpost);
+}
+
+// exports.updateimageupload = async (req, res) => {
+
+//     handleMultipartData(req, res, async (err) => {
+//         const filePaths = req.file.path;
+//         console.log(filePaths)
+//         let update_image_upload;
+//         try {
+//             update_image_upload = await postModel.findOneAndUpdate({ _id: req.params.id }, {
+
+//                 image: filePaths
+
+//             });
+//         }
+
+//         catch (err) {
+//             console.log(err)
+//         }
+//         res.status(201).json(update_image_upload);
+
+//     });
+
+// },
+
+
+
+exports.deletepost = async (req, res) => {
+    let all;
+    try {
+        all = await postModel.findOneAndDelete({ _id: req.params.id });
+    }
+    catch (error) {
+        console.log(error);
+    }
+
+
+    res.status(201).json(all);
+}
+
+
+
+
+exports.add_leaves = async (req, res) => {
+
+    const { name, leave_type } = req.body;
+    let data;
+    try {
+        data = await leavesModel.create(
+            {
+                name,
+                leave_type
+
+            });
+        console.log(data);
+    }
+    catch (err) {
+        return next(err);
+    }
+    res.status(201).json({
+        success: true,
+        data: data
+    });
+
+}
+
+exports.allleave = async (req, res) => {
+    const leave = await leavesModel.find();
+    res.status(201).json(leave);
+}
+
+exports.like = async (req, res) => {
+    try {
+        let check = await postModel.findById(req.params.id)
+        let likeArray = check.like
+        let likedOrNot = likeArray.indexOf(req.user.id)
+        if (likedOrNot < 0) {
+            console.log(likedOrNot)
+            check = await postModel.findByIdAndUpdate(req.params.id, { $push: { like: req.user.id } })
+        } else {
+            likeArray.splice(likedOrNot, 1)
+            console.log(likeArray)
+            check = await postModel.findByIdAndUpdate(req.params.id, { $set: { like: [...likeArray] } })
+        }
+        res.status(201).json(check);
+    }
+    catch (error) {
+        console.log(error)
+    }
+
+
+},
+
+    exports.comment = async (req, res) => {
+
+        try {
+            let checkid = await postModel.findById(req.params.id)
+            let commentArray = checkid.comment
+            let commentornot = commentArray.indexOf(req.user.id)
+            checkid = await postModel.findByIdAndUpdate(req.params.id, { $push: { comment: { userId: req.user.id, content: req.body.content } } });
+            console.log(checkid)
+            res.json(checkid)
+        }
+        catch (error) {
+            console.log(error);
+        }
+
+    }
+
+exports.add_event = async (req, res) => {
+    const { event_title, event_date, event_description, start_time, end_time } = req.body;
+    let data;
+    try {
+        data = await eventModel.create(
+            {
+                event_title,
+                event_date,
+                event_description,
+                start_time,
+                end_time
+
+            });
+        console.log(data);
+    }
+    catch (err) {
+        console.log(err)
+    }
+    res.status(201).json({
+        success: true,
+        data: data
+    });
+},
+
+
+    exports.events = async (req, res) => {
+
+        let find;
+
+        try {
+            find = await eventModel.find();
+        }
+        catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+        return res.json(find);
+    }
+
+
+
+// module.exports = {
+//     add_post, allcomment, like, allleave, add_leaves, deletepost, allpost
+// }
