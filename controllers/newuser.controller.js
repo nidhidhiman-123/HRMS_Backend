@@ -1,6 +1,7 @@
 const newuserModel = require("../models/newuser.model");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = "MYSECRETKEY"
+
 const moment = require("moment")
 
 // const newuserController = {
@@ -12,6 +13,7 @@ exports.adduser = async (req, res) => {
     if (existingUser)
       return res
         .status(400).json({ msg: "An account with this email already exists." });
+
     const adduser = new newuserModel({
       name,
       email,
@@ -57,12 +59,12 @@ exports.adduser = async (req, res) => {
 
       let currentdate = moment(new Date()).format('DD/MM/YYYY')
       if (finaldate == currentdate) {
-        arrays.push({ name: x.name, emp_id: x.emp_id, email: x.email, password: x.password, _id: x.id })
+        arrays.push({ name: x.name, emp_id: x.emp_id, email: x.email, password: x.password, _id: x.id, invite_status: x.invite_status })
       }
       else {
         console.log("no")
       }
-      console.log(finaldate, currentdate)
+
     }
     return res.json(arrays);
   },
@@ -75,7 +77,6 @@ exports.adduser = async (req, res) => {
       const todayMonth = new Date().getMonth() + 1;
 
       var DateObj = new Date(x.dob);
-      console.log(DateObj.getMonth() + 1, todayMonth, "sddddddddddddd");
       const final = DateObj.getMonth() + 1
       if (final === todayMonth) {
         console.log("yes")
@@ -85,7 +86,6 @@ exports.adduser = async (req, res) => {
         console.log("no")
       }
 
-      console.log(birthday, "birthday")
 
     }
     res.status(201).json(birthday);

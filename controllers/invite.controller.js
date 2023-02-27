@@ -15,6 +15,7 @@ exports.invite = async (req, res) => {
         }
         let newToken = Math.floor(Math.random() * 1000000 + 1);
         user.token = newToken;
+        let check = await newuserModel.findByIdAndUpdate({ _id: _id }, { invite_status: 'true' });
 
         user.save().then((result) => {
             const transporter = nodemailer.createTransport({

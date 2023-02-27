@@ -1,6 +1,6 @@
 const postModel = require("../models/post.model");
 const leavesModel = require("../models/leaves.model");
-const eventModel = require("../models/event.model");
+
 const multer = require("multer");
 
 
@@ -21,7 +21,6 @@ const handleMultipartData = multer({ storage, limit: { filesize: 1000000 * 5 } }
 exports.add_post = async (req, res) => {
     const current_date = new Date();
 
-    console.log(current_date);
 
     handleMultipartData(req, res, async (err) => {
 
@@ -72,44 +71,54 @@ exports.allpost = async (req, res) => {
 
 }
 
+
 exports.editpost = async (req, res) => {
-    const { title, description, post_date, image } = req.body;
-    let editpost;
-    try {
-        editpost = await postModel.findByIdAndUpdate({ _id: req.params.id },
 
-            { title: title, description: description, post_date: post_date });
-    }
-    catch (error) {
-        console.log(error);
-    }
+    handleMultipartData(req, res, async (err) => {
+
+        const image = req.file;
+        const { title, description } = req.body;
 
 
-    res.status(201).json(editpost);
+        console.log(image, "fs")
+
+        let updateFilter = {
+
+        }
+        if (title) {
+            updateFilter.title = title
+        }
+        if (description) {
+            updateFilter.description = description
+        }
+        if (image) {
+            updateFilter.image = req.file.path
+        }
+        console.log(title, description, req.params.id, "sd")
+        let document
+        try {
+            console.log("try")
+            document = await postModel.findByIdAndUpdate(req.params.id,
+                updateFilter,
+            );
+
+        }
+        catch (err) {
+            console.log("catch")
+            console.log(err)
+        }
+
+        res.status(201).json({
+            success: true,
+            data: document
+        });
+
+        console.log(document)
+
+
+    });
+
 }
-
-// exports.updateimageupload = async (req, res) => {
-
-//     handleMultipartData(req, res, async (err) => {
-//         const filePaths = req.file.path;
-//         console.log(filePaths)
-//         let update_image_upload;
-//         try {
-//             update_image_upload = await postModel.findOneAndUpdate({ _id: req.params.id }, {
-
-//                 image: filePaths
-
-//             });
-//         }
-
-//         catch (err) {
-//             console.log(err)
-//         }
-//         res.status(201).json(update_image_upload);
-
-//     });
-
-// },
 
 
 
@@ -140,7 +149,6 @@ exports.add_leaves = async (req, res) => {
                 leave_type
 
             });
-        console.log(data);
     }
     catch (err) {
         return next(err);
@@ -163,11 +171,9 @@ exports.like = async (req, res) => {
         let likeArray = check.like
         let likedOrNot = likeArray.indexOf(req.user.id)
         if (likedOrNot < 0) {
-            console.log(likedOrNot)
             check = await postModel.findByIdAndUpdate(req.params.id, { $push: { like: req.user.id } })
         } else {
             likeArray.splice(likedOrNot, 1)
-            console.log(likeArray)
             check = await postModel.findByIdAndUpdate(req.params.id, { $set: { like: [...likeArray] } })
         }
         res.status(201).json(check);
@@ -177,61 +183,11 @@ exports.like = async (req, res) => {
     }
 
 
-},
-
-    exports.comment = async (req, res) => {
-
-        try {
-            let checkid = await postModel.findById(req.params.id)
-            let commentArray = checkid.comment
-            let commentornot = commentArray.indexOf(req.user.id)
-            checkid = await postModel.findByIdAndUpdate(req.params.id, { $push: { comment: { userId: req.user.id, content: req.body.content } } });
-            console.log(checkid)
-            res.json(checkid)
-        }
-        catch (error) {
-            console.log(error);
-        }
-
-    }
-
-exports.add_event = async (req, res) => {
-    const { event_title, event_date, event_description, start_time, end_time } = req.body;
-    let data;
-    try {
-        data = await eventModel.create(
-            {
-                event_title,
-                event_date,
-                event_description,
-                start_time,
-                end_time
-
-            });
-        console.log(data);
-    }
-    catch (err) {
-        console.log(err)
-    }
-    res.status(201).json({
-        success: true,
-        data: data
-    });
-},
+}
 
 
-    exports.events = async (req, res) => {
 
-        let find;
 
-        try {
-            find = await eventModel.find();
-        }
-        catch (err) {
-            res.status(500).json({ error: err.message });
-        }
-        return res.json(find);
-    }
 
 
 
