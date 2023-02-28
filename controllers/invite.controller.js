@@ -39,9 +39,9 @@ exports.invite = async (req, res) => {
                 <ul>
                 <li>Name: ${user.name}</li>
                 <li>Email: ${user.email}</li>
-                <li>Password: ${user.password}</li>
+                <li>Password: ${user.first_login}</li>
                 </ul>,
-                <a href="http://localhost:3000/login">Click here to login<a> 
+                <a href="http://localhost:3000">Click here to login<a> 
                 `,
 
             }, (error, info) => {

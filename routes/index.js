@@ -33,7 +33,7 @@ router.post('/add_user', newuserController.adduser);
 router.post('/add_leave', postController.add_leaves);
 router.post('/apply_leave', auth, applyleaveController.apply);
 router.get('/all_leave', postController.allleave);
-router.get('/get_apply_leaves', applyleaveController.getapply_leaves);
+router.get('/get_apply_leaves', auth, applyleaveController.getapply_leaves);
 router.post('/update_leave/:id', applyleaveController.update_leave);
 router.put('/cancel_leave/:id', applyleaveController.cancel_leave);
 router.get('/single_user_apply_leave', auth, applyleaveController.single_user_apply_leave);
@@ -50,8 +50,7 @@ router.get('/all_add_employee', newuserController.all_add_employee);
 router.post('/add_project', projectController.add_project);
 router.get('/project/:code', projectController.project);
 router.post('/add_team', projectController.add_team);
-
-
+router.get('/admin_get_apply_leave', applyleaveController.admin_get_apply_leave);
 router.post('/comment/:id', auth, commentController.comment);
 router.post('/delete_comment', commentController.delete_comment);
 router.put('/edit_comment', commentController.edit_comment);

@@ -8,7 +8,7 @@ const moment = require("moment")
 
 exports.adduser = async (req, res) => {
   try {
-    const { name, email, password, dob, phonenumber, designation, emp_id, date_of_joining } = req.body;
+    const { name, email, first_login, dob, phonenumber, designation, emp_id, date_of_joining } = req.body;
     const existingUser = await newuserModel.findOne({ email: email });
     if (existingUser)
       return res
@@ -17,7 +17,7 @@ exports.adduser = async (req, res) => {
     const adduser = new newuserModel({
       name,
       email,
-      password,
+      first_login,
       phonenumber,
       dob,
       emp_id,
