@@ -19,23 +19,40 @@ const handleMultipartData = multer({ storage, limit: { filesize: 1000000 * 5 } }
 // const postController = {
 
 exports.add_post = async (req, res) => {
-    const current_date = new Date();
-
 
     handleMultipartData(req, res, async (err) => {
 
-        const filePath = req.file ? req.file.path : '';
+        const current_date = new Date();
         const { description, title } = req.body;
-        let post_data;
-        try {
-            post_data = await postModel.create
-                ({
-                    title,
-                    description,
-                    post_date: current_date,
-                    image: filePath
-                });
+        const filePath = req.file
 
+        console.log(title, description)
+        let addValue = {
+
+        }
+        if (title) {
+            addValue.title = title;
+
+        }
+        if (description) {
+            addValue.description = description;
+        }
+        if (filePath) {
+            addValue.image = req.file.path
+        }
+        if (current_date) {
+            addValue.post_date = current_date
+        }
+
+        let post_data;
+
+        try {
+            post_data = await postModel.create(
+                addValue,
+
+
+            );
+            console.log(post_data);
         }
         catch (err) {
             return next(err);
