@@ -8,7 +8,7 @@ const postSchema = new Schema({
     post_date: { type: Date },
     image: {
         type: String, default: '', get: (image) => {
-            return image ? `${APP_URL.trim()}/${image}` : "";
+            return image ? `${APP_URL.trim()}/${image.trim()}` : "";
         }
     },
     like: [
